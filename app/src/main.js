@@ -22,14 +22,14 @@ class GitGaskeun {
 
   async generateCommitMessageAI(files, apiKey) {
     try {
-      const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+      const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
       const response = await axios.post(
         `${apiUrl}?key=${apiKey}`,
         {
           contents: [{
             parts: [{
-              text: `Generate a concise and descriptive commit message for these modified files: ${files.join(", ")}`
+              text: `Sebagai generator commit message git, buat commit message yang singkat dan deskriptif untuk perubahan file berikut: ${files.join(", ")}. Gunakan bahasa gaul Indonesia dan gaya Jaksel yang casual, santai, dan pastikan tetap mengikuti format commit konvensional. Pesan ini tidak boleh lebih dari 72 karakter.`
             }]
           }]
         },
@@ -38,14 +38,21 @@ class GitGaskeun {
         }
       );
 
-      if (!response.data?.parts?.[0]?.text) {
+      // Periksa format response yang benar
+      if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
+        return response.data.candidates[0].content.parts[0].text.trim();
+      } else {
         throw new Error("Invalid response format from Gemini API");
       }
-
-      return response.data.parts[0].text.trim();
     } catch (error) {
-      console.error("❌ AI Commit Generation Error:", error.message);
-      return "feat: update files (AI generation failed)";
+      if (error.response) {
+        // Handle specific API errors
+        const errorMessage = error.response.data?.error?.message || error.response.data?.message || error.message;
+        console.error("❌ Gemini API Error:", errorMessage);
+      } else {
+        console.error("❌ Network Error:", error.message);
+      }
+      return "chore: update files (AI generation failed)";
     }
   }
 
@@ -64,15 +71,15 @@ class GitGaskeun {
       name: "commitOption",
       message: "💬 Pilih jenis commit message:",
       choices: [
-        "1. Manual ✍️",
+        "1. Manual",
         "2. AI Gemini 🤖",
-        "3. File Changes 📂"
+        "3. Perubahan File"
       ],
-      default: "1. Manual ✍️"
+      default: "1. Manual"
     }]);
 
     switch (commitOption) {
-      case "1. Manual ✍️":
+      case "1. Manual":
         const { userCommitMessage } = await inquirer.prompt([{
           type: "input",
           name: "userCommitMessage",
@@ -85,26 +92,46 @@ class GitGaskeun {
         const { apiKey } = await inquirer.prompt([{
           type: "input",
           name: "apiKey",
-          message: "🔑 Gemini API Key:",
-          validate: input => input.trim().length > 0
+          message: "🔑 Masukkan Gemini API Key:",
+          validate: input => {
+            if (!input.trim()) return "API Key tidak boleh kosong";
+            if (!input.startsWith("AIza")) return "Format API Key tidak valid";
+            return true;
+          }
         }]);
         
         console.log("\n⏳ Generating commit message with AI...");
         const aiMessage = await this.generateCommitMessageAI(modifiedFiles, apiKey);
         console.log(`\n💬 Generated commit message: ${aiMessage}`);
+        
+        // Konfirmasi commit message
+        const { confirmMessage } = await inquirer.prompt([{
+          type: "confirm",
+          name: "confirmMessage",
+          message: "Gunakan commit message ini?",
+          default: true
+        }]);
+
+        if (!confirmMessage) {
+          return this.promptForCommitMessage(modifiedFiles);
+        }
+
         return aiMessage;
 
-      case "3. File Changes 📂":
+      case "3. Perubahan File":
         return `update: ${modifiedFiles.join(", ")}`;
     }
   }
 
   async selectBranch(currentBranch, availableBranches) {
+    // Filter out remote branches
+    const localBranches = availableBranches.filter(branch => !branch.startsWith('remotes/'));
+    
     const { branchName } = await inquirer.prompt([{
       type: "list",
       name: "branchName",
       message: "🔀 Select branch to push:",
-      choices: [...availableBranches, "custom"],
+      choices: [...localBranches, "custom"],
       default: currentBranch
     }]);
 
