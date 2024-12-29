@@ -93,4 +93,4 @@ ISC License - see LICENSE file for details
 
 ---
 
-Made with ❤️ by Zi
+Made with ❤️ by Afauzi
