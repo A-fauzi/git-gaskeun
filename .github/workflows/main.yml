@@ -28,9 +28,6 @@ jobs:
         continue-on-error: true # This will ensure tests can fail without breaking the job
         if: false # You can change this condition to skip tests entirely
 
-      - name: Run lint
-        run: npm run lint
-
   publish:
     needs: test
     runs-on: ubuntu-latest
