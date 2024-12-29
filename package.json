@@ -1,17 +1,41 @@
 {
   "name": "git-gaskeun",
   "version": "1.0.0",
-  "description": "git auto publish with gaskeun",
+  "description": "Simple CLI tool for Git automation 🐛",
   "main": "app/src/main.js",
   "type": "module",
-  "scripts": {
-    "start": "node app/src/main.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "bin": {
+    "gaskeun": "app/src/main.js"
   },
+  "scripts": {
+    "build": "babel src -d app/src",
+    "test": "jest",
+    "lint": "eslint app/src/",
+    "prepare": "husky install",
+    "prepublishOnly": "npm test && npm run lint && npm run build",
+    "version": "auto-changelog -p && git add CHANGELOG.md",
+    "start": "node app/src/main.js"
+  },
+  "keywords": [
+    "git",
+    "cli",
+    "automation"
+  ],
   "author": "afauzi",
   "license": "ISC",
+  "files": [
+    "app/src"
+  ],
   "dependencies": {
     "inquirer": "^12.3.0",
     "simple-git": "^3.27.0"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "devDependencies": {
+    "eslint": "^9.17.0",
+    "husky": "^9.1.7",
+    "prettier": "^3.4.2"
   }
 }
