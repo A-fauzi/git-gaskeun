@@ -44,22 +44,6 @@ gaskeun
 
 3. Ikuti instruksi interaktif di CLI.
 
-### Local Usage
-
-1. Tambahkan script ke package.json proyek lo:
-```json
-{
-  "scripts": {
-    "gaskeun": "git-gaskeun"
-  }
-}
-```
-
-2. Jalankan di terminal:
-```bash
-npm run gaskeun
-```
-
 ---
 
 ## 📖 Example
