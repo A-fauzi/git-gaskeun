@@ -1,0 +1,29 @@
+{
+  "name": "gaskeun-git",
+  "version": "1.0.0",
+  "description": "Simple CLI tool for Git automation 🐛",
+  "main": "app/src/main.js",
+  "type": "module",
+  "bin": {
+    "gaskeun": "app/src/main.js"
+  },
+  "scripts": {
+    "test": "jest",
+    "version": "auto-changelog -p && git add CHANGELOG.md",
+    "start": "node app/src/main.js"
+  },
+  "keywords": [
+    "git",
+    "cli",
+    "automation"
+  ],
+  "author": "afauzi",
+  "license": "ISC",
+  "dependencies": {
+    "inquirer": "^12.3.0",
+    "simple-git": "^3.27.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  }
+}

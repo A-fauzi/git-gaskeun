@@ -1,0 +1,44 @@
+# Node.js dependencies
+node_modules/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Editor and IDE files
+.vscode/
+.idea/
+*.swp
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Dist files
+dist/
+
+# Build output
+build/
+
+# Coverage directory
+coverage/
+
+# Temporary files
+tmp/
+*.tmp
+*.temp
+
+# Test files
+*.test.js
+*.spec.js
+
+# Ignore lockfiles if not used
