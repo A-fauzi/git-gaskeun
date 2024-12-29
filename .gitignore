@@ -42,6 +42,3 @@ tmp/
 *.spec.js
 
 # Ignore lockfiles if not used
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
