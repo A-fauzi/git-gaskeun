@@ -19,7 +19,7 @@ async function main() {
     // Step 1: Git Add
     const status = await git.status();
     
-    // Get all modified files (including new, modified, and deleted)
+    // Get all modified files
     const modifiedFiles = [
       ...status.not_added,
       ...status.modified,
@@ -30,7 +30,7 @@ async function main() {
     modifiedFiles.forEach(file => console.log(`- ${file}`));
     await git.add(".");
 
-    // Create default commit message from modified files
+    // Create default commit message
     const defaultMessage = modifiedFiles.length > 0
       ? `Updated: ${modifiedFiles.join(", ")}`
       : "No files changed";
@@ -46,13 +46,22 @@ async function main() {
     ]);
     await git.commit(commitMessage);
 
+    // Get list of available branches
+    const branchSummary = await git.branch();
+    const availableBranches = Object.keys(branchSummary.branches);
+    const currentBranch = branchSummary.current;
+
+    console.log("\n🌿 Available branches:", availableBranches.join(", "));
+    console.log("📌 Current branch:", currentBranch);
+
     // Step 3: Select Branch
     const { branchName } = await inquirer.prompt([
       {
         type: "list",
         name: "branchName",
         message: "🔀 Select branch to push:",
-        choices: ["main", "master", "custom"]
+        choices: [...availableBranches, "custom"],
+        default: currentBranch
       }
     ]);
 
@@ -69,9 +78,23 @@ async function main() {
     }
 
     // Step 4: Push to Branch
-    await git.push("origin", finalBranch);
+    try {
+      await git.push("origin", finalBranch);
+      console.log("\n✨ Yeayy mantap!🚀");
+    } catch (pushErr) {
+      if (pushErr.message.includes("src refspec") || pushErr.message.includes("does not match any")) {
+        console.error(`\n❌ Error: Branch '${finalBranch}' does not exist or hasn't been set up for pushing.`);
+        console.log("\n💡 Suggestion:");
+        console.log(`1. Create and switch to branch '${finalBranch}':
+           git checkout -b ${finalBranch}`);
+        console.log(`2. Or use one of these existing branches: ${availableBranches.join(", ")}`);
+        console.log("\n3. If this is a new branch, you might need to:");
+        console.log(`   git push --set-upstream origin ${finalBranch}`);
+      } else {
+        console.error("❌ An error occurred:", pushErr.message);
+      }
+    }
 
-    console.log("\n✨ Yeayy mantap!🚀");
   } catch (err) {
     console.error("❌ An error occurred:", err.message);
   }
