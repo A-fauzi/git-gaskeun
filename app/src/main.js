@@ -2,102 +2,213 @@
 
 import inquirer from 'inquirer';
 import simpleGit from 'simple-git';
+import axios from 'axios'; 
 
-const git = simpleGit();
 
-async function main() {
-  console.log("🚀 Welcome to Git Gaskeun!");
+// Constants
+const MESSAGES = {
+  WELCOME: "🚀 Welcome to Git Gaskeun!",
+  NO_REPO: "❌ Error: This is not a Git repository!",
+  NO_FILES: "❌ No modified files to commit.",
+  SUCCESS: "✨ Yeayy mantap! 🚀",
+  FILES_TO_ADD: "📂 Files to be added:",
+  BRANCHES_AVAILABLE: "🌿 Available branches:",
+  CURRENT_BRANCH: "📌 Current branch:",
+};
 
-  try {
-    // Check if current directory is a Git repository
-    const isRepo = await git.checkIsRepo();
-    if (!isRepo) {
-      console.error("❌ Error: This is not a Git repository!");
-      process.exit(1);
+class GitGaskeun {
+  constructor() {
+    this.git = simpleGit();
+  }
+
+  async generateCommitMessageAI(files) {
+    try {
+      const apiKey = process.env.GEMINI_API_KEY;
+      
+      if (!apiKey) {
+        throw new Error("GEMINI_API_KEY not found in environment variables");
+      }
+
+      const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
+
+      const response = await axios.post(
+        `${apiUrl}?key=${apiKey}`,
+        {
+          contents: [{
+            parts: [{
+              text: `Generate a concise and descriptive commit message for these modified files: ${files.join(", ")}`
+            }]
+          }]
+        },
+        {
+          headers: { 'Content-Type': 'application/json' }
+        }
+      );
+
+      if (!response.data?.parts?.[0]?.text) {
+        throw new Error("Invalid response format from Gemini API");
+      }
+
+      return response.data.parts[0].text.trim();
+    } catch (error) {
+      console.error("❌ AI Commit Generation Error:", error.message);
+      return "feat: update files (AI generation failed)";
     }
+  }
 
-    // Step 1: Git Add
-    const status = await git.status();
-    
-    // Get all modified files
-    const modifiedFiles = [
+  async getModifiedFiles() {
+    const status = await this.git.status();
+    return [
       ...status.not_added,
       ...status.modified,
       ...status.deleted
     ];
+  }
 
-    console.log("\n📂 Files to be added:");
-    modifiedFiles.forEach(file => console.log(`- ${file}`));
-    await git.add(".");
+  async promptForCommitMessage(modifiedFiles) {
+    const { commitOption } = await inquirer.prompt([{
+      type: "list",
+      name: "commitOption",
+      message: "💬 Pilih jenis commit message:",
+      choices: [
+        "1. Manual",
+        "2. AI Gemini",
+        "3. Perubahan File"
+      ],
+      default: "1. Manual"
+    }]);
 
-    // Create default commit message
-    const defaultMessage = modifiedFiles.length > 0
-      ? `Updated: ${modifiedFiles.join(", ")}`
-      : "No files changed";
-
-    // Step 2: Commit Message
-    const { commitMessage } = await inquirer.prompt([
-      {
-        type: "input",
-        name: "commitMessage",
-        message: "💬 Enter commit message (leave empty for default):",
-        default: defaultMessage
-      }
-    ]);
-    await git.commit(commitMessage);
-
-    // Get list of available branches
-    const branchSummary = await git.branch();
-    const availableBranches = Object.keys(branchSummary.branches);
-    const currentBranch = branchSummary.current;
-
-    console.log("\n🌿 Available branches:", availableBranches.join(", "));
-    console.log("📌 Current branch:", currentBranch);
-
-    // Step 3: Select Branch
-    const { branchName } = await inquirer.prompt([
-      {
-        type: "list",
-        name: "branchName",
-        message: "🔀 Select branch to push:",
-        choices: [...availableBranches, "custom"],
-        default: currentBranch
-      }
-    ]);
-
-    let finalBranch = branchName;
-    if (branchName === "custom") {
-      const { customBranch } = await inquirer.prompt([
-        {
+    switch (commitOption) {
+      case "1. Manual":
+        const { userCommitMessage } = await inquirer.prompt([{
           type: "input",
-          name: "customBranch",
-          message: "📂 Enter custom branch name:"
-        }
-      ]);
-      finalBranch = customBranch;
+          name: "userCommitMessage",
+          message: "💬 Masukkan commit message:",
+          validate: input => input.trim().length > 0
+        }]);
+        return userCommitMessage;
+
+      case "2. AI Gemini":
+        const aiMessage = await this.generateCommitMessageAI(modifiedFiles);
+        console.log(`\n💬 Generated commit message: ${aiMessage}`);
+        return aiMessage;
+
+      case "3. Perubahan File":
+        return `update: ${modifiedFiles.join(", ")}`;
+    }
+  }
+
+  async selectBranch(currentBranch, availableBranches) {
+    const { branchName } = await inquirer.prompt([{
+      type: "list",
+      name: "branchName",
+      message: "🔀 Select branch to push:",
+      choices: [...availableBranches, "custom"],
+      default: currentBranch
+    }]);
+
+    if (branchName === "custom") {
+      const { customBranch } = await inquirer.prompt([{
+        type: "input",
+        name: "customBranch",
+        message: "📂 Enter custom branch name:",
+        validate: input => input.trim().length > 0
+      }]);
+      return customBranch;
     }
 
-    // Step 4: Push to Branch
-    try {
-      await git.push("origin", finalBranch);
-      console.log("\n✨ Yeayy mantap!🚀");
-    } catch (pushErr) {
-      if (pushErr.message.includes("src refspec") || pushErr.message.includes("does not match any")) {
-        console.error(`\n❌ Error: Branch '${finalBranch}' does not exist or hasn't been set up for pushing.`);
-        console.log("\n💡 Suggestion:");
-        console.log(`1. Create and switch to branch '${finalBranch}':
-           git checkout -b ${finalBranch}`);
-        console.log(`2. Or use one of these existing branches: ${availableBranches.join(", ")}`);
-        console.log("\n3. If this is a new branch, you might need to:");
-        console.log(`   git push --set-upstream origin ${finalBranch}`);
-      } else {
-        console.error("❌ An error occurred:", pushErr.message);
+    return branchName;
+  }
+
+  async handlePushError(error, finalBranch, availableBranches) {
+    if (error.message.includes("src refspec") || error.message.includes("does not match any")) {
+      console.error(`\n❌ Error: Branch '${finalBranch}' does not exist or hasn't been set up for pushing.`);
+      
+      const { action } = await inquirer.prompt([{
+        type: "list",
+        name: "action",
+        message: "How would you like to proceed?",
+        choices: [
+          "Create new branch and push",
+          "Select existing branch",
+          "Cancel"
+        ]
+      }]);
+
+      switch (action) {
+        case "Create new branch and push":
+          await this.git.checkoutLocalBranch(finalBranch);
+          await this.git.push("origin", finalBranch, ["--set-upstream"]);
+          return true;
+        
+        case "Select existing branch":
+          const newBranch = await this.selectBranch(availableBranches[0], availableBranches);
+          await this.git.push("origin", newBranch);
+          return true;
+
+        default:
+          return false;
       }
     }
+    
+    throw error;
+  }
 
-  } catch (err) {
-    console.error("❌ An error occurred:", err.message);
+  async run() {
+    try {
+      console.log(MESSAGES.WELCOME);
+
+      // Verify Git repository
+      const isRepo = await this.git.checkIsRepo();
+      if (!isRepo) {
+        throw new Error(MESSAGES.NO_REPO);
+      }
+
+      // Get modified files
+      const modifiedFiles = await this.getModifiedFiles();
+      if (modifiedFiles.length === 0) {
+        console.log(MESSAGES.NO_FILES);
+        return;
+      }
+
+      // Display modified files
+      console.log(`\n${MESSAGES.FILES_TO_ADD}`);
+      modifiedFiles.forEach(file => console.log(`- ${file}`));
+      
+      // Add files
+      await this.git.add(".");
+
+      // Get commit message
+      const commitMessage = await this.promptForCommitMessage(modifiedFiles);
+      await this.git.commit(commitMessage);
+
+      // Get branch information
+      const branchSummary = await this.git.branch();
+      const availableBranches = Object.keys(branchSummary.branches);
+      const currentBranch = branchSummary.current;
+
+      console.log(`\n${MESSAGES.BRANCHES_AVAILABLE} ${availableBranches.join(", ")}`);
+      console.log(`${MESSAGES.CURRENT_BRANCH} ${currentBranch}`);
+
+      // Select and push to branch
+      const finalBranch = await this.selectBranch(currentBranch, availableBranches);
+      
+      try {
+        await this.git.push("origin", finalBranch);
+        console.log(`\n${MESSAGES.SUCCESS}`);
+      } catch (pushError) {
+        const resolved = await this.handlePushError(pushError, finalBranch, availableBranches);
+        if (resolved) {
+          console.log(`\n${MESSAGES.SUCCESS}`);
+        }
+      }
+
+    } catch (error) {
+      console.error("❌ Error:", error.message);
+      process.exit(1);
+    }
   }
 }
 
-main();
+// Run the application
+new GitGaskeun().run();

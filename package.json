@@ -20,6 +20,7 @@
   "author": "afauzi",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.7.9",
     "inquirer": "^12.3.0",
     "simple-git": "^3.27.0"
   },
