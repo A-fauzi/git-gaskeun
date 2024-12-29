@@ -1,11 +1,6 @@
 {
-<<<<<<< HEAD
   "name": "gaskeun-git",
   "version": "1.0.0",
-=======
-  "name": "git-gaskeun",
-  "version": "1.0.1",
->>>>>>> 55b0635e9db2f139a8178eccebef7705d18daefd
   "description": "Simple CLI tool for Git automation 🐛",
   "main": "app/src/main.js",
   "type": "module",
