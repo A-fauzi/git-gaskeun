@@ -21,12 +21,12 @@ Hemat waktu, less effort, dan full auto!
 
 ### Install Secara Global  
 ```bash
-npm install -g git-gaskeun
+npm install -g gaskeun-git
 ```
 
 ### Install di Proyek Lokal  
 ```bash
-npm install git-gaskeun
+npm install gaskeun-git
 ```
 
 ---
