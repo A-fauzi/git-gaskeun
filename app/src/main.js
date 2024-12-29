@@ -18,9 +18,22 @@ async function main() {
 
     // Step 1: Git Add
     const status = await git.status();
+    
+    // Get all modified files (including new, modified, and deleted)
+    const modifiedFiles = [
+      ...status.not_added,
+      ...status.modified,
+      ...status.deleted
+    ];
+
     console.log("\n📂 Files to be added:");
-    status.not_added.forEach(file => console.log(`- ${file}`));
+    modifiedFiles.forEach(file => console.log(`- ${file}`));
     await git.add(".");
+
+    // Create default commit message from modified files
+    const defaultMessage = modifiedFiles.length > 0
+      ? `Updated: ${modifiedFiles.join(", ")}`
+      : "No files changed";
 
     // Step 2: Commit Message
     const { commitMessage } = await inquirer.prompt([
@@ -28,7 +41,7 @@ async function main() {
         type: "input",
         name: "commitMessage",
         message: "💬 Enter commit message (leave empty for default):",
-        default: "Auto commit with gaskeun"
+        default: defaultMessage
       }
     ]);
     await git.commit(commitMessage);
