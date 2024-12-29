@@ -14,6 +14,7 @@
   "author": "afauzi",
   "license": "ISC",
   "dependencies": {
+    "git-gaskeun": "^1.0.0",
     "inquirer": "^12.3.0",
     "simple-git": "^3.27.0"
   }
