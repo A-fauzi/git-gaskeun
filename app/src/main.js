@@ -2,8 +2,7 @@
 
 import inquirer from 'inquirer';
 import simpleGit from 'simple-git';
-import axios from 'axios'; 
-
+import axios from 'axios';
 
 // Constants
 const MESSAGES = {
@@ -21,14 +20,8 @@ class GitGaskeun {
     this.git = simpleGit();
   }
 
-  async generateCommitMessageAI(files) {
+  async generateCommitMessageAI(files, apiKey) {
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      
-      if (!apiKey) {
-        throw new Error("GEMINI_API_KEY not found in environment variables");
-      }
-
       const apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
       const response = await axios.post(
@@ -71,15 +64,15 @@ class GitGaskeun {
       name: "commitOption",
       message: "💬 Pilih jenis commit message:",
       choices: [
-        "1. Manual",
-        "2. AI Gemini",
-        "3. Perubahan File"
+        "1. Manual ✍️",
+        "2. AI Gemini 🤖",
+        "3. File Changes 📂"
       ],
-      default: "1. Manual"
+      default: "1. Manual ✍️"
     }]);
 
     switch (commitOption) {
-      case "1. Manual":
+      case "1. Manual ✍️":
         const { userCommitMessage } = await inquirer.prompt([{
           type: "input",
           name: "userCommitMessage",
@@ -88,12 +81,20 @@ class GitGaskeun {
         }]);
         return userCommitMessage;
 
-      case "2. AI Gemini":
-        const aiMessage = await this.generateCommitMessageAI(modifiedFiles);
+      case "2. AI Gemini 🤖":
+        const { apiKey } = await inquirer.prompt([{
+          type: "input",
+          name: "apiKey",
+          message: "🔑 Gemini API Key:",
+          validate: input => input.trim().length > 0
+        }]);
+        
+        console.log("\n⏳ Generating commit message with AI...");
+        const aiMessage = await this.generateCommitMessageAI(modifiedFiles, apiKey);
         console.log(`\n💬 Generated commit message: ${aiMessage}`);
         return aiMessage;
 
-      case "3. Perubahan File":
+      case "3. File Changes 📂":
         return `update: ${modifiedFiles.join(", ")}`;
     }
   }
