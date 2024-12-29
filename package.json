@@ -1,0 +1,19 @@
+{
+  "name": "git-gaskeun",
+  "version": "1.0.0",
+  "description": "git auto publish with gaskeun",
+  "main": "app/src/main.js",
+  "bin": {
+    "gaskeun": "app/src/main.js"
+  },
+  "scripts": {
+    "start": "node app/src/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "afauzi",
+  "license": "ISC",
+  "dependencies": {
+    "inquirer": "^12.3.0",
+    "simple-git": "^3.27.0"
+  }
+}
