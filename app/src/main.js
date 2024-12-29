@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const inquirer = require("inquirer");
-const simpleGit = require("simple-git");
+import inquirer from 'inquirer';
+import simpleGit from 'simple-git';
 
 const git = simpleGit();
 

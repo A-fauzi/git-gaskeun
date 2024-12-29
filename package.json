@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "git auto publish with gaskeun",
   "main": "app/src/main.js",
+  "type": "module",
   "bin": {
     "gaskeun": "app/src/main.js"
   },
