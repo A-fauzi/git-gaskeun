@@ -8,6 +8,7 @@
     "gaskeun": "app/src/main.js"
   },
   "scripts": {
+    "test": "jest",
     "version": "auto-changelog -p && git add CHANGELOG.md",
     "start": "node app/src/main.js"
   },
@@ -21,6 +22,8 @@
   "dependencies": {
     "inquirer": "^12.3.0",
     "simple-git": "^3.27.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
   }
-  
 }
