@@ -29,7 +29,20 @@ class GitGaskeun {
         {
           contents: [{
             parts: [{
-              text: `Sebagai generator commit message git, buat commit message yang singkat dan deskriptif untuk perubahan file berikut: ${files.join(", ")}. Gunakan bahasa gaul Indonesia dan gaya Jaksel yang casual, santai, dan pastikan tetap mengikuti format commit konvensional. Pesan ini tidak boleh lebih dari 72 karakter.`
+              text: `Sebagai git commit message generator, analisa perubahan code/file berikut:
+${files.join(", ")}
+
+Buatkan commit message dengan ketentuan:
+1. Baca dan pahami perubahan pada file/code tersebut
+2. Gunakan format conventional commit (feat/fix/chore/etc)
+3. Deskripsikan perubahan dengan bahasa Indonesia santai + jaksel style
+4. Maksimal 72 karakter
+5. Harus mencerminkan perubahan yang sebenarnya di code
+
+Contoh good commit message:
+- feat: nambahin dark mode di navbar
+- fix: benerin infinite loop di useEffect
+- style: update warna primary jadi lebih fresh`
             }]
           }]
         },
