@@ -5,7 +5,7 @@
   "main": "app/src/main.js",
   "type": "module",
   "bin": {
-    "gaskeun": "app/src/main.js"
+    "gaskeun": "./bin/cli.js"
   },
   "scripts": {
     "test": "jest",

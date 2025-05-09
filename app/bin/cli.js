@@ -1,4 +1,6 @@
-import { GitGaskeun } from './index.js';
+#!/usr/bin/env node
+
+import { GitGaskeun } from '../src/index';
 
 // Run the application
 const gitGaskeun = new GitGaskeun();
