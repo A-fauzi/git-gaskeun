@@ -12,7 +12,6 @@ export class GitGaskeun {
 
   async run() {
     try {
-      this.ui.displayWelcomeMessage();
 
       // Verify Git repository
       const isRepo = await this.gitService.isGitRepository();
@@ -26,6 +25,8 @@ export class GitGaskeun {
         console.log(MESSAGES.NO_FILES);
         return;
       }
+      
+      this.ui.displayWelcomeMessage();
       // Display modified files
       this.ui.displayModifiedFiles(modifiedFiles);
       
